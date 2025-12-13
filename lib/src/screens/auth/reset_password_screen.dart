@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../constants/app_colors.dart';
+import '../../services/buyer_auth_service.dart';
 
 /// Reset Password Screen - AC9: Password Reset Flow
 /// Accessed via deep link from email
@@ -78,21 +79,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       _errorMessage = null;
     });
 
-    try {
-      // TODO: Call API - POST /v1/auth/buyer/reset-password
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isSuccess = true);
-      }
-    } catch (e) {
+    final result = await BuyerAuthService.resetPassword(
+      token: widget.token,
+      newPassword: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (result.success) {
+      setState(() => _isSuccess = true);
+    } else {
       setState(() {
-        _errorMessage = 'Reset link has expired. Please request a new one.';
+        _isLoading = false;
+        _errorMessage = result.errorMessage ?? 'Reset link has expired. Please request a new one.';
       });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
@@ -200,7 +200,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       decoration: BoxDecoration(
         color: AppColors.errorContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -374,7 +374,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             borderRadius: BorderRadius.circular(50),
             boxShadow: [
               BoxShadow(
-                color: AppColors.secondary.withOpacity(0.3),
+                color: AppColors.secondary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../constants/app_colors.dart';
+import '../../services/buyer_auth_service.dart';
 
 /// Forgot Password Screen - AC9: Forgot Password Flow
 /// Premium, clean design following Buyers App UX patterns
@@ -44,18 +45,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
 
-    try {
-      // TODO: Call API - POST /v1/auth/buyer/forgot-password
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isEmailSent = true);
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    final result = await BuyerAuthService.forgotPassword(
+      email: _emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      _isEmailSent = result.success;
+    });
   }
 
   @override
@@ -264,7 +263,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           decoration: BoxDecoration(
             color: AppColors.infoBg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.info.withOpacity(0.2)),
+            border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [

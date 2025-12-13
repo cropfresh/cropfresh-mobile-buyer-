@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../constants/app_colors.dart';
+import '../../services/buyer_auth_service.dart';
 
 /// Login Screen - AC7: Buyer Email/Password Login
 /// Clean, smooth, premium, modern Material Design 3
@@ -56,22 +57,20 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    try {
-      // TODO: Call API - POST /v1/auth/buyer/login
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-      
-      // On success, navigate to dashboard
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      }
-    } catch (e) {
+    final result = await BuyerAuthService.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (result.success) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
       setState(() {
-        _errorMessage = 'Invalid email or password';
+        _isLoading = false;
+        _errorMessage = result.errorMessage ?? 'Invalid email or password';
       });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
@@ -142,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -189,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         color: AppColors.errorContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
